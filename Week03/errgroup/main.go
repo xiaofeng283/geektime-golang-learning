@@ -21,17 +21,17 @@ func (h *myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello World!")
 }
 
-// HTTP server
-func httpServer(ctx context.Context, stops <-chan struct{}) error {
-	server := &http.Server{Addr: "127.0.0.1:8000", Handler: &myHandler{}}
+// HTTP服务
+func httpServer(ctx context.Context, Addr string, stops <-chan struct{}) error {
+	server := &http.Server{Addr: Addr, Handler: &myHandler{}}
 	go func() {
 		select {
 		case <-stops:
-			log.Print("Get信号, server shutdown")
+			log.Print("信号, server shutdown")
 			server.Shutdown(ctx)
 			return
 		case <-ctx.Done():
-			log.Print("Get超时, server shutdown")
+			log.Print("超时, server shutdown")
 			server.Shutdown(ctx)
 			return
 		}
@@ -39,7 +39,7 @@ func httpServer(ctx context.Context, stops <-chan struct{}) error {
 	return server.ListenAndServe()
 }
 
-// ListenSignal
+// 信号
 func ListenSignal(ctx context.Context, stops chan struct{}) error {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT)
@@ -58,13 +58,21 @@ func main() {
 
 	var stops = make(chan struct{})
 
-	c, cancel := context.WithTimeout(context.Background(), time.Duration(time.Millisecond*10000))
+	c, cancel := context.WithTimeout(context.Background(), time.Duration(time.Millisecond*30000))
 	defer cancel()
 	g, ctx := errgroup.WithContext(c)
 
 	// HTTP服务
 	g.Go(func() error {
-		err := httpServer(ctx, stops)
+		err := httpServer(ctx, ":8000", stops)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		err := httpServer(ctx, ":8888", stops)
 		if err != nil {
 			return err
 		}
