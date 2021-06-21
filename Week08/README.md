@@ -44,7 +44,7 @@ GET: 72150.07 requests per second, p50=0.703 msec
 
 
 info memory：
-```
+```shell
 $ redis-cli
 127.0.0.1:6379> info memory
 # Memory
@@ -92,7 +92,7 @@ lazyfreed_objects:0
 ```
 
 使用shell脚本写入测试数据：20字节
-```
+```shell
 #!/bin/bash
 for i in {1..10000}
 do
@@ -102,7 +102,7 @@ done
 ```
 
 info memory:
-```
+```shell
 127.0.0.1:6379> info memory
 # Memory
 used_memory:2155152
@@ -148,6 +148,32 @@ lazyfree_pending_objects:0
 lazyfreed_objects:0
 ```
 
+寻找较大的key：
+```shell
+redis-cli -h 127.0.0.1 -p 6379 --bigkeys
+
+# Scanning the entire keyspace to find biggest keys as well as
+# average sizes per key type.  You can use -i 0.1 to sleep 0.1 sec
+# per 100 SCAN commands (not usually needed).
+
+[00.00%] Biggest string found so far '"key9135"' with 19 bytes
+
+-------- summary -------
+
+Sampled 10000 keys in the keyspace!
+Total key length in bytes is 68894 (avg len 6.89)
+
+Biggest string found '"key9135"' has 19 bytes
+
+0 lists with 0 items (00.00% of keys, avg size 0.00)
+0 hashs with 0 fields (00.00% of keys, avg size 0.00)
+10000 strings with 190000 bytes (100.00% of keys, avg size 19.00)
+0 streams with 0 entries (00.00% of keys, avg size 0.00)
+0 sets with 0 members (00.00% of keys, avg size 0.00)
+0 zsets with 0 members (00.00% of keys, avg size 0.00)
+```
+
+还有个比较笨的方式，用rdbtools工具来查看key的大小，这样比较麻烦，数量少比较好操作，数量多的话就不好操作了。这里测试的是1万的测试数据，勉强可以用这种方式查看。
 
 
 
